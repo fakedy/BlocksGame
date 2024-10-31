@@ -12,6 +12,8 @@ public:
 	int posY;
 
 	void transpose();
+	void reverse();
+	void rotate();
 	std::vector<char> shape;
 
 

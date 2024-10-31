@@ -5,13 +5,10 @@
 #include "Tshape.h"
 #include "Ishape.h"
 
+	static Shape mapShape; // static :8
+
 class BlocksGame
 {
-
-
-
-
-
 
 public:
 
@@ -27,15 +24,11 @@ public:
 	void tick();
 	void update();
 
-	Shape rotate(Shape shape);
 
-	Shape transpose(Shape shape);
-	Shape reverse(Shape shape);
-
-
+	
 	bool canMove(const Shape& map, const Shape piece);
 
-	void move(Shape& shape, int x, int y);
+	bool move(Shape& shape, int x, int y);
 
 	Shape stitch(const Shape& shape1, const Shape& shape2);
 

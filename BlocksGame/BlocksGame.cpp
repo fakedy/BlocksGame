@@ -3,14 +3,11 @@
 #include <chrono>
 #include <ctime>
 #include <thread>
-#include <array>
-#include <span>
 #include <vector>
 #include "Tshape.h"
 #include "Ishape.h"
+#include "Input.h"
 
-
-Shape mapShape;
 
 
 std::vector<Shape> shapes;
@@ -61,16 +58,8 @@ void BlocksGame::tick() {
 		std::cout << "BlocksGame Clock: " << buffer;
 
 
-		// creates a copy of piece to test collision with before we move real one
-		Shape tempPiece = *piece;
-		move(tempPiece, 0, 1);
-
-		if (canMove(mapShape, tempPiece)) {
-			move(*piece, 0, 1);
-			//piece->transpose();
-			hasmoved = true;
-		}
-		else {
+		// if we move
+		if (!move(*piece, 0, 1)) {
 			// collision
 			std::cout << "COLLISION" << std::endl;
 			mapShape = stitch(mapShape, *piece);
@@ -87,36 +76,35 @@ void BlocksGame::tick() {
 
 void BlocksGame::update() {
 
-	// detect input and move piece
-	if (hasmoved) {
-		printMap(stitch(mapShape, *piece));
-		hasmoved = false;
+	if (piece != nullptr) {
+		// detect input and move piece
+		if (hasmoved) {
+			printMap(stitch(mapShape, *piece));
+			hasmoved = false;
+		}
+		
+
+
+		if (Input::getKeyPressed(Input::Key::D)) {
+			move(*piece, 1, 0);
+		}
+		else if (Input::getKeyPressed(Input::Key::A)) {
+			move(*piece, -1, 0);
+		}
+		if (Input::getKeyPressed(Input::Key::S)) {
+			move(*piece, 0, 1);
+		}
+
+		if (Input::getKeyPressed(Input::Key::W)) {
+			piece->rotate();
+			printMap(stitch(mapShape, *piece));
+		}
 	}
-
-}
-
-
-Shape BlocksGame::rotate(Shape shape) {
-	return Shape();
-}
-
-Shape BlocksGame::transpose(Shape shape) {
-	return Shape();
-}
-
-Shape BlocksGame::reverse(Shape shape) {
-
-
-	
-
-
-
-	return Shape();
 }
 
 bool BlocksGame::canMove(const Shape& map, const Shape piece) {
 	// if we hit bottom
-	if (piece.posY+piece.height == height) {
+	if (piece.posY+piece.height-1 == height) {
 		return false;
 	}
 	// if we are outside map
@@ -141,9 +129,19 @@ bool BlocksGame::canMove(const Shape& map, const Shape piece) {
 	return true;
 }
 
-void BlocksGame::move(Shape& shape, int x, int y) {
-	shape.posX += x;
-	shape.posY += y;
+bool BlocksGame::move(Shape& shape, int x, int y) {
+	// uh this felt kinda weird to do
+	Shape tempPiece = shape;
+	tempPiece.posX += x;
+	tempPiece.posY += y;
+
+	if (canMove(mapShape, tempPiece)) {
+		shape.posX += x;
+		shape.posY += y;
+		hasmoved = true;
+		return true;
+	}
+	return false;
 }
 
 Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
@@ -160,6 +158,7 @@ Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
 
 void BlocksGame::printMap(Shape shape) {
 
+
 	for (int y = 0; y < height; y++) {
 		for (int x = 0; x < width; x++)
 		{
@@ -167,4 +166,5 @@ void BlocksGame::printMap(Shape shape) {
 		}
 		std::cout << std::endl;
 	}
+
 }
