@@ -65,7 +65,7 @@ void BlocksGame::tick() {
 		std::cout << "BlocksGame Clock: " << buffer;
 
 
-		// if we move
+		// if manage to move down
 		if (!move(*piece, 0, 1)) {
 			// collision
 			std::cout << "COLLISION" << std::endl;
@@ -73,7 +73,7 @@ void BlocksGame::tick() {
 			mapShape = stitch(mapShape, *piece); 
 			wholeMapShape = stitch(mapShape, *piece);
 			rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
-			mapShape = wholeMapShape;
+			mapShape = wholeMapShape; // after clearing full rows transfer state to mapShape
 			piece = nullptr;
 		}
 
@@ -85,7 +85,6 @@ void BlocksGame::tick() {
 }
 
 int BlocksGame::rowClear(Shape& map) {
-
 	int counter = 0;
 	std::vector<int> locations;
 	char prev = '*';
@@ -94,9 +93,9 @@ int BlocksGame::rowClear(Shape& map) {
 		for (int x = 0; x < map.width; x++) {
 			
 			int index = x + y * map.width;
-			if (map.shape[index] != '*') {
+			if (map.shape[index] != '*' && map.shape[index] != 'x') {
 				// if we are at start of row or previous one was a block
-				if (index % map.width == 0 || prev != '*') {
+				if (index % map.width == 0 || (prev != '*' && prev != 'x')) {
 					counter++;
 					
 					prev = map.shape[index];
@@ -153,15 +152,30 @@ void BlocksGame::update() {
 	if (piece != nullptr) {
 		// detect input and move piece
 		if (hasmoved) {
+
+			// stitch piece onto the map
 			wholeMapShape = stitch(mapShape, *piece);
 
+			
 			// copy for expected piece pos
-			/*
 			std::unique_ptr<Shape> expectedPiecePos;
-			expectedPiecePos = std::make_unique<Shape>(piece);
-			expectedPiecePos.get()->posY = 15;
-			wholeMapShape = stitch(mapShape, *expectedPiecePos);
-			*/
+			expectedPiecePos = std::make_unique<Shape>(*piece);
+			// dumb but whatever
+			for (int x = 0; x < expectedPiecePos.get()->width; x++)
+			{
+				for (int y = 0; y < expectedPiecePos.get()->height; y++)
+				{
+					if (expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] != '*') {
+						expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] = 'x';
+					}
+				}
+			}
+
+			while (move(*expectedPiecePos, 0, 1));
+			// stitch this piece for display
+			wholeMapShape = stitch(wholeMapShape, *expectedPiecePos);
+			
+
 			hasmoved = false;
 		}
 		
@@ -178,12 +192,13 @@ void BlocksGame::update() {
 		if (Input::getKeyPressed(Input::Key::W)) {
 			//TODO  we need check for rotation to prevent invalid moves
 			piece->rotate();
-			wholeMapShape = (stitch(mapShape, *piece));
+			hasmoved = true;
 		}
 
 		if (Input::getKeyPressed(Input::Key::SPACE)) {
 			
-			move(*piece, 0, 1);
+			// while move returns true keep going down
+			while (move(*piece, 0, 1));
 		}
 	}
 }
@@ -205,7 +220,9 @@ bool BlocksGame::canMove(const Shape& map, const Shape piece) {
 	// check overlap
 	for (int y = 0; y < piece.height; y++) {
 		for (int x = 0; x < piece.width; x++) {
-			if (piece.shape[x + y * piece.width] != '*' && map.shape[x + piece.posX + (y + piece.posY) * width] != '*') {
+			int index = x + y * piece.width;
+			int mapIndex = x + piece.posX + (y + piece.posY) * width;
+			if ((piece.shape[index] != '*' && (map.shape[mapIndex] != '*' &&  map.shape[mapIndex] != 'x'))) {
 				return false;
 			}
 
@@ -235,8 +252,9 @@ Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
 	Shape stitchedShape = shape1; // Start with the base map
 	for (int y = 0; y < piece.height; y++) {
 		for (int x = 0; x < piece.width; x++) {
-			if (piece.shape[x + y * piece.width] != '*') {
-				stitchedShape.shape[x+piece.posX + (y + piece.posY) * width] = piece.shape[x + y * piece.width];
+			int index = x + y * piece.width;
+			if (piece.shape[index] != '*') {
+				stitchedShape.shape[x+piece.posX + (y + piece.posY) * width] = piece.shape[index];
 			}
 		}
 	}

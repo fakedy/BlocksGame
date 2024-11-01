@@ -147,6 +147,7 @@
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Shape.cpp" />
     <ClCompile Include="BlocksGame.cpp" />
+    <ClCompile Include="TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game.h" />
@@ -160,6 +161,7 @@
     <ClInclude Include="BlocksGame.h" />
     <ClInclude Include="Sshape.h" />
     <ClInclude Include="SRshape.h" />
+    <ClInclude Include="TextureManager.h" />
     <ClInclude Include="Tshape.h" />
   </ItemGroup>
   <ItemGroup>

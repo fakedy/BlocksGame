@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include "BlocksGame.h"
 #include <mutex>
+#include "TextureManager.h"
 class Renderer
 {
 
@@ -12,11 +13,14 @@ public:
 
 private:
 
+	TextureManager textureManager;
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
 	unsigned int shaderProgram;
-	unsigned int texture;
+
+	unsigned int backgroundBlockTexture;
+	unsigned int markerBlockTexture;
 	std::vector<GLuint> textureIDs;
 
 	float vertices[16] = {

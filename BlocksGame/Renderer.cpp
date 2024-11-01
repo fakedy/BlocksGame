@@ -1,22 +1,20 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include "Renderer.h"
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include "stb/stb_image.h"'
 #include "BlocksGame.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Game.h"
 #include <filesystem>
+#include <fstream>
+#include <sstream>
 
 Renderer::Renderer()
 {
-
 	loadMesh();
 	createShaders();
 	loadTextures();
+	textureManager = TextureManager();
 
 }
 
@@ -57,47 +55,18 @@ void Renderer::loadTextures()
 
 	std::vector<std::string> pathList;
 
-	for (const auto& file : std::filesystem::directory_iterator("Resources/Textures/Block/")) {
+	for (const auto& file : std::filesystem::directory_iterator("Resources/Textures/Block/PieceBlocks/")) {
 		pathList.push_back(file.path().string().c_str());
 	}
 
-
-	// stbi image loading
-	stbi_set_flip_vertically_on_load(true);
 	for (const auto& file : pathList) {
 
-		// Texture wrapping
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		// Texture filtering
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		glActiveTexture(GL_TEXTURE0);
-		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
-
-		int width, height, channels;
-		unsigned char* data = stbi_load(file.c_str(), &width, &height, &channels, 0);
-
-		//  defines the textures differently depending on if it got RGB or RGBA aka jpg or png kinda.
-		if (data) {
-			if (channels == 4) {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			}
-			else {
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-			}
-			glGenerateMipmap(GL_TEXTURE_2D);
-		}
-		else {
-			std::cout << "failed to load texture: " << file << stbi_failure_reason() << std::endl;
-		}
-
-
-		stbi_image_free(data);
+		unsigned int texture = textureManager.loadTexture(file.c_str());
 		textureIDs.push_back(texture);
 	}
+
+	backgroundBlockTexture = textureManager.loadTexture("Resources/Textures/Block/blackBlock.png");
+	markerBlockTexture = textureManager.loadTexture("Resources/Textures/Block/markerBlock.png");
 
 }
 
@@ -187,7 +156,6 @@ void Renderer::draw()
 
 	glBindVertexArray(VAO);
 	glUseProgram(shaderProgram);
-	glBindTexture(GL_TEXTURE_2D, texture);
 
 	// grab variables from the other classes
 	float gameWidth = static_cast<float>(BlocksGame::width);
@@ -231,11 +199,10 @@ void Renderer::draw()
 		{
 
 			char letter = BlocksGame::wholeMapShape.shape[x + y * BlocksGame::width];
-			if (letter != '*') {
 
 				view = glm::mat4(1.0f);
 				// we add 0.5f or subtract because our shapes are got size of -0.5f to 0.5f
-				pos = glm::vec3(x+0.5f -gameWidth/2, BlocksGame::wholeMapShape.height - y-0.5 -gameHeight/2, 0);
+				pos = glm::vec3(x+0.5f -gameWidth/2, BlocksGame::wholeMapShape.height - y -0.5 -gameHeight/2, 0);
 				view = glm::translate(view, pos);
 
 				// update shader unifom with view matrix
@@ -246,11 +213,28 @@ void Renderer::draw()
 				unsigned int projLoc = glGetUniformLocation(shaderProgram, "proj");
 				glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
+			if (letter != '*') {
 				glActiveTexture(GL_TEXTURE0);
 				// transform a char that we ASSUME is a valid digit
-				int digit = letter - '0'; 
-				glBindTexture(GL_TEXTURE_2D, textureIDs[digit]); // bind relevant texture with this digit
+				if (letter == 'x') {
+					glBindTexture(GL_TEXTURE_2D, markerBlockTexture); 
+				}
+				else {
+
+					int digit = letter - '0'; 
+					glBindTexture(GL_TEXTURE_2D, textureIDs[digit]); // bind relevant texture with this digit
+				}
+
 				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			}
+			else {
+				
+				glActiveTexture(GL_TEXTURE0);
+				// transform a char that we ASSUME is a valid digit
+				int digit = letter - '0';
+				glBindTexture(GL_TEXTURE_2D, backgroundBlockTexture); // bind relevant texture with this digit
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+				
 			}
 
 		}
