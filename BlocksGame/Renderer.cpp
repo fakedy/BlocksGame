@@ -80,7 +80,7 @@ void Renderer::loadTextures()
 		int width, height, channels;
 		unsigned char* data = stbi_load(file.c_str(), &width, &height, &channels, 0);
 
-
+		//  defines the textures differently depending on if it got RGB or RGBA aka jpg or png kinda.
 		if (data) {
 			if (channels == 4) {
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -189,11 +189,13 @@ void Renderer::draw()
 	glUseProgram(shaderProgram);
 	glBindTexture(GL_TEXTURE_2D, texture);
 
+	// grab variables from the other classes
 	float gameWidth = static_cast<float>(BlocksGame::width);
 	float gameHeight = static_cast<float>(BlocksGame::height);
 	float windowWidth = static_cast<float>(Game::windowWidth);
 	float windowHeight = static_cast<float>(Game::windowHeight);
 
+	// calculate aspect ratio of window and game size
 	float windowAspectRatio = windowWidth / windowHeight;
 	float gameAspectRatio = gameWidth / gameHeight;
 	float left, right, bottom, top;
@@ -222,7 +224,7 @@ void Renderer::draw()
 	glm::mat4 proj = glm::ortho(left, right, bottom, top);
 
 
-	mutex.lock(); // race condition crash yay for multithreading
+	mutex.lock(); // to prevent possible race condition but I dont believe its essential.
 	for (int x = 0; x < BlocksGame::wholeMapShape.width; x++)
 	{
 		for (int y = 0; y < BlocksGame::wholeMapShape.height; y++)
@@ -232,17 +234,22 @@ void Renderer::draw()
 			if (letter != '*') {
 
 				view = glm::mat4(1.0f);
+				// we add 0.5f or subtract because our shapes are got size of -0.5f to 0.5f
 				pos = glm::vec3(x+0.5f -gameWidth/2, BlocksGame::wholeMapShape.height - y-0.5 -gameHeight/2, 0);
 				view = glm::translate(view, pos);
+
+				// update shader unifom with view matrix
 				unsigned int transformLoc = glGetUniformLocation(shaderProgram, "view");
 				glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(view));
 
+				// update shader unifom with proj matrix
 				unsigned int projLoc = glGetUniformLocation(shaderProgram, "proj");
 				glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
 				glActiveTexture(GL_TEXTURE0);
-				int digit = letter - '0'; // we assume that the char is a number
-				glBindTexture(GL_TEXTURE_2D, textureIDs[digit]);
+				// transform a char that we ASSUME is a valid digit
+				int digit = letter - '0'; 
+				glBindTexture(GL_TEXTURE_2D, textureIDs[digit]); // bind relevant texture with this digit
 				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			}
 

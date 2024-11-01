@@ -12,6 +12,9 @@
 
 
 Shape BlocksGame::wholeMapShape;
+std::random_device rd; // random seed
+std::mt19937 gen(rd()); // init generator with random seed
+std::uniform_int_distribution<int> dist(1, 100); // defines our distribution
 
 constexpr std::vector<char> BlocksGame::fillMap() {
 	
@@ -41,17 +44,17 @@ BlocksGame::BlocksGame() {
 	wholeMapShape.width = width;
 	wholeMapShape.height = height;
 
-
-
-	piece = shapeCreators[std::rand() % shapeCreators.size()]();
+	// randomly select first piece
+	piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 }
 
 void BlocksGame::tick() {
 
 	while (true) {
 
+		// if we have no piece, create it.
 		if (piece == nullptr) {
-			piece = shapeCreators[std::rand() % shapeCreators.size()]();
+			piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 		}
 
 		auto now = std::chrono::system_clock::now();
@@ -66,9 +69,10 @@ void BlocksGame::tick() {
 		if (!move(*piece, 0, 1)) {
 			// collision
 			std::cout << "COLLISION" << std::endl;
-			mapShape = stitch(mapShape, *piece);
+
+			mapShape = stitch(mapShape, *piece); 
 			wholeMapShape = stitch(mapShape, *piece);
-			test(wholeMapShape);
+			rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
 			mapShape = wholeMapShape;
 			piece = nullptr;
 		}
@@ -80,7 +84,7 @@ void BlocksGame::tick() {
 
 }
 
-int BlocksGame::test(Shape& map) {
+int BlocksGame::rowClear(Shape& map) {
 
 	int counter = 0;
 	std::vector<int> locations;
@@ -91,6 +95,7 @@ int BlocksGame::test(Shape& map) {
 			
 			int index = x + y * map.width;
 			if (map.shape[index] != '*') {
+				// if we are at start of row or previous one was a block
 				if (index % map.width == 0 || prev != '*') {
 					counter++;
 					
@@ -99,18 +104,25 @@ int BlocksGame::test(Shape& map) {
 
 			}
 			else {
+				// we broke the streak, restart.
 				x = map.width;
 				counter = 0;
 				prev = '*';
 			}
+			// if we have a row to remove, add it to a list
 			if (counter != 0 && counter % map.width == 0) {
 				locations.push_back(y);
 			}
 
 		}
 	}
-
+	// I dont think locking is actually necessary but whatever
 	mutex.lock();
+	// for every row marked to be removed, remove them and add new row
+
+	// sort rows in descending order to ensure integrity of rows in shape
+	std::sort(locations.rbegin(), locations.rend());
+
 	for (int loc : locations)
 	{
 		auto start = map.shape.begin() + loc * map.width;
@@ -121,9 +133,13 @@ int BlocksGame::test(Shape& map) {
 	}
 	
 	// inefficient
-	while (map.shape.size() < map.width * map.height) {
-		map.shape.insert(map.shape.begin(), '*');
+	// insert new rows from start of vector
+	
+	for (size_t i = 0; i < locations.size(); i++)
+	{
+		map.shape.insert(map.shape.begin(), map.width ,'*');
 	}
+	
 	mutex.unlock();
 
 	return counter;
@@ -138,6 +154,14 @@ void BlocksGame::update() {
 		// detect input and move piece
 		if (hasmoved) {
 			wholeMapShape = stitch(mapShape, *piece);
+
+			// copy for expected piece pos
+			/*
+			std::unique_ptr<Shape> expectedPiecePos;
+			expectedPiecePos = std::make_unique<Shape>(piece);
+			expectedPiecePos.get()->posY = 15;
+			wholeMapShape = stitch(mapShape, *expectedPiecePos);
+			*/
 			hasmoved = false;
 		}
 		
@@ -152,8 +176,14 @@ void BlocksGame::update() {
 		}
 
 		if (Input::getKeyPressed(Input::Key::W)) {
+			//TODO  we need check for rotation to prevent invalid moves
 			piece->rotate();
 			wholeMapShape = (stitch(mapShape, *piece));
+		}
+
+		if (Input::getKeyPressed(Input::Key::SPACE)) {
+			
+			move(*piece, 0, 1);
 		}
 	}
 }

@@ -12,6 +12,7 @@ void Input::keyCallback(GLFWwindow* window, int key, int scancode, int action, i
     else if (action == GLFW_RELEASE) {
         keyMap[key] = false;
     }
+
 }
 
 

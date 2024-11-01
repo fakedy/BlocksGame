@@ -47,7 +47,7 @@ public:
 
 private:
 
-	int test(Shape& map);
+	int rowClear(Shape& map);
 
 
 	std::vector<std::function<std::unique_ptr<Shape>()>> shapeCreators = {
@@ -60,6 +60,8 @@ private:
 	[]() { return std::make_unique<Oshape>(); },
 
 	};
+
+
 
 };
 
