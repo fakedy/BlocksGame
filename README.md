@@ -8,8 +8,8 @@
 
 ## Technologies & Libraries Used
 
-[OpenGL](https://www.opengl.org/)   
-[GLFW](https://www.glfw.org/)   
-[stb_image](https://github.com/nothings/stb)
-[GLAD](https://glad.dav1d.de/)
-[GLM](https://github.com/g-truc/glm)
+* OpenGL
+* GLFW
+* stb_image
+* GLAD
+* GLM
