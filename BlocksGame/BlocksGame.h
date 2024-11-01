@@ -28,6 +28,7 @@ public:
 	bool hasmoved;
 	Shape mapShape; // static :8
 	std::unique_ptr<Shape> piece;
+	std::unique_ptr<Shape> heldPiece;
 
 	constexpr std::vector<char> fillMap();
 
@@ -46,9 +47,9 @@ public:
 
 
 private:
-
+	bool usedHeld{false};
 	int rowClear(Shape& map);
-
+	void blockHitBottom();
 
 	std::vector<std::function<std::unique_ptr<Shape>()>> shapeCreators = {
 	[]() { return std::make_unique<Tshape>(); },

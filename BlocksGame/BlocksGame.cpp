@@ -64,24 +64,27 @@ void BlocksGame::tick() {
 		ctime_s(buffer, sizeof(buffer), &currentTime);
 		std::cout << "BlocksGame Clock: " << buffer;
 
-
 		// if manage to move down
 		if (!move(*piece, 0, 1)) {
-			// collision
-			std::cout << "COLLISION" << std::endl;
-
-			mapShape = stitch(mapShape, *piece); 
-			wholeMapShape = stitch(mapShape, *piece);
-			rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
-			mapShape = wholeMapShape; // after clearing full rows transfer state to mapShape
-			piece = nullptr;
+			blockHitBottom();
 		}
-
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 
 
+}
+
+void BlocksGame::blockHitBottom() {
+	// collision
+	std::cout << "COLLISION" << std::endl;
+
+	mapShape = stitch(mapShape, *piece);
+	wholeMapShape = stitch(mapShape, *piece);
+	rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
+	mapShape = wholeMapShape; // after clearing full rows transfer state to mapShape
+	piece = nullptr;
+	usedHeld = false;
 }
 
 int BlocksGame::rowClear(Shape& map) {
@@ -149,58 +152,89 @@ void BlocksGame::update() {
 
 	// main thread
 
-	if (piece != nullptr) {
-		// detect input and move piece
-		if (hasmoved) {
+		// if we have no piece, create it.
+	if (piece == nullptr) {
+		piece = shapeCreators[dist(gen) % shapeCreators.size()]();
+	}
 
-			// stitch piece onto the map
-			wholeMapShape = stitch(mapShape, *piece);
+
+	// detect input and move piece
+	if (hasmoved) {
+
+		// stitch piece onto the map
+		wholeMapShape = stitch(mapShape, *piece);
 
 			
-			// copy for expected piece pos
-			std::unique_ptr<Shape> expectedPiecePos;
-			expectedPiecePos = std::make_unique<Shape>(*piece);
-			// dumb but whatever
-			for (int x = 0; x < expectedPiecePos.get()->width; x++)
+		// copy for expected piece pos
+		std::unique_ptr<Shape> expectedPiecePos;
+		expectedPiecePos = std::make_unique<Shape>(*piece);
+		// this is to replace this expectedPiecePos to be x where x is rendered as marker for piece drop
+		for (int x = 0; x < expectedPiecePos.get()->width; x++)
+		{
+			for (int y = 0; y < expectedPiecePos.get()->height; y++)
 			{
-				for (int y = 0; y < expectedPiecePos.get()->height; y++)
-				{
-					if (expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] != '*') {
-						expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] = 'x';
-					}
+				if (expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] != '*') {
+					expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] = 'x';
 				}
 			}
+		}
 
-			while (move(*expectedPiecePos, 0, 1));
-			// stitch this piece for display
-			wholeMapShape = stitch(wholeMapShape, *expectedPiecePos);
+		while (move(*expectedPiecePos, 0, 1));
+		// stitch this piece for display
+		wholeMapShape = stitch(wholeMapShape, *expectedPiecePos);
 			
 
-			hasmoved = false;
-		}
-		
-		if (Input::getKeyPressed(Input::Key::D)) {
-			move(*piece, 1, 0);
-		}
-		else if (Input::getKeyPressed(Input::Key::A)) {
-			move(*piece, -1, 0);
-		}
-		if (Input::getKeyPressed(Input::Key::S)) {
-			move(*piece, 0, 1);
-		}
-
-		if (Input::getKeyPressed(Input::Key::W)) {
-			//TODO  we need check for rotation to prevent invalid moves
-			piece->rotate();
-			hasmoved = true;
-		}
-
-		if (Input::getKeyPressed(Input::Key::SPACE)) {
-			
-			// while move returns true keep going down
-			while (move(*piece, 0, 1));
-		}
+		hasmoved = false;
 	}
+		
+	if (Input::getKeyPressed(Input::Key::D)) {
+		move(*piece, 1, 0);
+	}
+	else if (Input::getKeyPressed(Input::Key::A)) {
+		move(*piece, -1, 0);
+	}
+	if (Input::getKeyPressed(Input::Key::S)) {
+
+		move(*piece, 0, 1);
+
+	}
+
+	if (Input::getKeyPressed(Input::Key::W)) {
+		//TODO  we need check for rotation to prevent invalid moves
+		piece->rotate();
+		hasmoved = true;
+	}
+
+	if (Input::getKeyPressed(Input::Key::SPACE)) {
+			
+		// while move returns true keep going down
+		while (move(*piece, 0, 1));
+		blockHitBottom();
+	}
+
+	if (Input::getKeyPressed(Input::Key::C)) {
+		
+		if (!usedHeld) {
+
+			if (heldPiece == nullptr) {
+				heldPiece = std::move(piece);
+				piece = shapeCreators[dist(gen) % shapeCreators.size()]();
+			}
+			else {
+				std::unique_ptr<Shape> temp = std::move(piece);
+				piece = std::move(heldPiece);
+				heldPiece = std::move(temp);
+
+				piece.get()->posY = 0;
+				piece.get()->posX = 4;
+			}
+			usedHeld = true;
+		}
+
+		hasmoved = true;
+		
+	}
+	
 }
 
 bool BlocksGame::canMove(const Shape& map, const Shape piece) {
@@ -253,8 +287,12 @@ Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
 	for (int y = 0; y < piece.height; y++) {
 		for (int x = 0; x < piece.width; x++) {
 			int index = x + y * piece.width;
+			int stitchedIndex = x + piece.posX + (y + piece.posY) * width;
 			if (piece.shape[index] != '*') {
-				stitchedShape.shape[x+piece.posX + (y + piece.posY) * width] = piece.shape[index];
+				// do not overwrite something that int a * with an x
+				if (piece.shape[index] != 'x' || (piece.shape[index] == 'x' && stitchedShape.shape[stitchedIndex] == '*')) {
+					stitchedShape.shape[stitchedIndex] = piece.shape[index];
+				}
 			}
 		}
 	}
