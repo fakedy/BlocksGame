@@ -6,7 +6,10 @@
 #include "Renderer.h"
 
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 BlocksGame game;
+int Game::windowWidth = 1920;
+int Game::windowHeight = 1080;
 
 Game::Game()
 {
@@ -19,7 +22,8 @@ Game::Game()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(1920, 1080, "BlocksGame", NULL, NULL);
+
+	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "BlocksGame", NULL, NULL);
 	if (!window) {
 		std::cout << "Window creation failed" << std::endl;
 		glfwTerminate();
@@ -41,6 +45,7 @@ Game::Game()
 	}
 
 	glfwSetKeyCallback(window, Input::keyCallback);
+	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 
 	Renderer renderer = Renderer();
 
@@ -48,7 +53,7 @@ Game::Game()
 	std::thread BlocksGameThread(&BlocksGame::tick, &game);
 
 
-	glViewport(0, 0, 1920, 1080);
+	glViewport(0, 0, windowWidth, windowHeight);
 	while (!glfwWindowShouldClose(window)) {
 
 		update();
@@ -69,8 +74,18 @@ Game::Game()
 	BlocksGameThread.join();
 }
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+
+	Game::windowWidth = width;
+	Game::windowHeight = height;
+	glViewport(0, 0, width, height);
+
+}
+
 void Game::update()
 {
 	game.update();
 
 }
+
+

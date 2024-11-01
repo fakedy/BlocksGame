@@ -6,10 +6,10 @@ class Shape {
 
 public:
 
-	int width;
-	int height;
-	int posX;
-	int posY;
+	int width{};
+	int height{};
+	int posX{};
+	int posY{};
 
 	void transpose();
 	void reverse();

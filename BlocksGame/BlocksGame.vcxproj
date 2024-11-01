@@ -152,9 +152,14 @@
     <ClInclude Include="Game.h" />
     <ClInclude Include="Input.h" />
     <ClInclude Include="Ishape.h" />
+    <ClInclude Include="LRshape.h" />
+    <ClInclude Include="Lshape.h" />
+    <ClInclude Include="Oshape.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shape.h" />
     <ClInclude Include="BlocksGame.h" />
+    <ClInclude Include="Sshape.h" />
+    <ClInclude Include="SRshape.h" />
     <ClInclude Include="Tshape.h" />
   </ItemGroup>
   <ItemGroup>

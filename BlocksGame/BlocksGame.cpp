@@ -4,13 +4,14 @@
 #include <ctime>
 #include <thread>
 #include <vector>
-#include "Tshape.h"
-#include "Ishape.h"
+
 #include "Input.h"
+#include <random>
+#include <functional>
 
 
 
-std::vector<Shape> shapes;
+Shape BlocksGame::wholeMapShape;
 
 constexpr std::vector<char> BlocksGame::fillMap() {
 	
@@ -35,11 +36,14 @@ BlocksGame::BlocksGame() {
 	mapShape.width = width;
 	mapShape.height = height;
 
-	// add shapes to the list of shapes
-	shapes.push_back(Tshape());
-	shapes.push_back(Ishape());
 
-	piece = new Shape(shapes[0]);
+	wholeMapShape.shape = fillMap();
+	wholeMapShape.width = width;
+	wholeMapShape.height = height;
+
+
+
+	piece = shapeCreators[std::rand() % shapeCreators.size()]();
 }
 
 void BlocksGame::tick() {
@@ -47,7 +51,7 @@ void BlocksGame::tick() {
 	while (true) {
 
 		if (piece == nullptr) {
-			piece = new Shape(shapes[0]);
+			piece = shapeCreators[std::rand() % shapeCreators.size()]();
 		}
 
 		auto now = std::chrono::system_clock::now();
@@ -63,7 +67,9 @@ void BlocksGame::tick() {
 			// collision
 			std::cout << "COLLISION" << std::endl;
 			mapShape = stitch(mapShape, *piece);
-			delete piece;
+			wholeMapShape = stitch(mapShape, *piece);
+			test(wholeMapShape);
+			mapShape = wholeMapShape;
 			piece = nullptr;
 		}
 
@@ -74,17 +80,67 @@ void BlocksGame::tick() {
 
 }
 
+int BlocksGame::test(Shape& map) {
+
+	int counter = 0;
+	std::vector<int> locations;
+	char prev = '*';
+
+	for (int y = 0; y < map.height; y++) {
+		for (int x = 0; x < map.width; x++) {
+			
+			int index = x + y * map.width;
+			if (map.shape[index] != '*') {
+				if (index % map.width == 0 || prev != '*') {
+					counter++;
+					
+					prev = map.shape[index];
+				}
+
+			}
+			else {
+				x = map.width;
+				counter = 0;
+				prev = '*';
+			}
+			if (counter != 0 && counter % map.width == 0) {
+				locations.push_back(y);
+			}
+
+		}
+	}
+
+	mutex.lock();
+	for (int loc : locations)
+	{
+		auto start = map.shape.begin() + loc * map.width;
+		auto end = start + map.width;
+
+		map.shape.erase(start, end);
+
+	}
+	
+	// inefficient
+	while (map.shape.size() < map.width * map.height) {
+		map.shape.insert(map.shape.begin(), '*');
+	}
+	mutex.unlock();
+
+	return counter;
+
+}
+
 void BlocksGame::update() {
+
+	// main thread
 
 	if (piece != nullptr) {
 		// detect input and move piece
 		if (hasmoved) {
-			printMap(stitch(mapShape, *piece));
+			wholeMapShape = stitch(mapShape, *piece);
 			hasmoved = false;
 		}
 		
-
-
 		if (Input::getKeyPressed(Input::Key::D)) {
 			move(*piece, 1, 0);
 		}
@@ -97,7 +153,7 @@ void BlocksGame::update() {
 
 		if (Input::getKeyPressed(Input::Key::W)) {
 			piece->rotate();
-			printMap(stitch(mapShape, *piece));
+			wholeMapShape = (stitch(mapShape, *piece));
 		}
 	}
 }
@@ -145,26 +201,15 @@ bool BlocksGame::move(Shape& shape, int x, int y) {
 }
 
 Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
+	mutex.lock();
 	Shape stitchedShape = shape1; // Start with the base map
 	for (int y = 0; y < piece.height; y++) {
 		for (int x = 0; x < piece.width; x++) {
 			if (piece.shape[x + y * piece.width] != '*') {
-				stitchedShape.shape[x+piece.posX + (y + piece.posY) * width] = piece.shape[x + y * piece.width]; // prob edit this
+				stitchedShape.shape[x+piece.posX + (y + piece.posY) * width] = piece.shape[x + y * piece.width];
 			}
 		}
 	}
+	mutex.unlock();
 	return stitchedShape;
-}
-
-void BlocksGame::printMap(Shape shape) {
-
-
-	for (int y = 0; y < height; y++) {
-		for (int x = 0; x < width; x++)
-		{
-			std::cout << shape.shape[x + y * width];
-		}
-		std::cout << std::endl;
-	}
-
 }

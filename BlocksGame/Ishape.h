@@ -6,13 +6,14 @@ class Ishape : public Shape {
 public:
 	Ishape() {
 
+
 		width = 4;
 		height = 1;
 		posX = 4;
 		posY = 0;
 
 		shape = {
-		'x','x','x','x'
+		'0','0','0','0'
 		};
 	}
 

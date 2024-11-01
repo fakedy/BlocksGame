@@ -2,19 +2,18 @@
 #include "Shape.h"
 
 
-class Tshape : public Shape {
+class Oshape : public Shape {
 public:
+	Oshape() {
 
-	Tshape() {
-
-		width = 3;
+		width = 2;
 		height = 2;
 		posX = 4;
 		posY = 0;
 
 		shape = {
-			'*','1','*',
-			'1','1','1',
+		'6','6',
+		'6','6',
 		};
 	}
 
