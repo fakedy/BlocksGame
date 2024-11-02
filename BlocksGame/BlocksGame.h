@@ -24,32 +24,29 @@ public:
 
 	static const int width = 10;
 	static const int height = 20;
+	int score = 0;
 	static Shape wholeMapShape; // static :8
-	bool hasmoved;
-	Shape mapShape; // static :8
-	std::unique_ptr<Shape> piece;
-	std::unique_ptr<Shape> heldPiece;
-
-	constexpr std::vector<char> fillMap();
-
 	BlocksGame();
 
 	void tick();
 	void update();
-
-
-	
-	bool canMove(const Shape& map, const Shape piece);
-
-	bool move(Shape& shape, int x, int y);
-
-	Shape stitch(const Shape& shape1, const Shape& shape2);
-
+	void stop();
 
 private:
 	bool usedHeld{false};
+	bool gameShouldStop = false;
+	bool hasmoved;
+	Shape mapShape;
+	std::unique_ptr<Shape> piece;
+	std::unique_ptr<Shape> heldPiece;
+
+	
+	constexpr std::vector<char> fillMap();
 	int rowClear(Shape& map);
 	void blockHitBottom();
+	bool canMove(const Shape& map, const Shape piece);
+	bool move(Shape& shape, int x, int y);
+	Shape stitch(const Shape& shape1, const Shape& shape2);
 
 	std::vector<std::function<std::unique_ptr<Shape>()>> shapeCreators = {
 	[]() { return std::make_unique<Tshape>(); },

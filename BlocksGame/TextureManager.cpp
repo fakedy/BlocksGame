@@ -9,6 +9,7 @@
 
 int TextureManager::loadTexture(const char* file)
 {
+	// the textures are upside down if we dont do this
 	stbi_set_flip_vertically_on_load(true);
 	unsigned int texture;
 

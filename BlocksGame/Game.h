@@ -16,7 +16,7 @@ private:
 
 
 
-	GLFWwindow* window;
+	GLFWwindow* window{};
 
 };
 

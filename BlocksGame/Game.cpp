@@ -23,7 +23,7 @@ Game::Game()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-	GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "BlocksGame", NULL, NULL);
+	window = glfwCreateWindow(windowWidth, windowHeight, "BlocksGame", NULL, NULL);
 	if (!window) {
 		std::cout << "Window creation failed" << std::endl;
 		glfwTerminate();
@@ -55,7 +55,6 @@ Game::Game()
 
 	glViewport(0, 0, windowWidth, windowHeight);
 	while (!glfwWindowShouldClose(window)) {
-
 		update();
 
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -68,10 +67,11 @@ Game::Game()
 	}
 
 
+	game.stop();
+	BlocksGameThread.join();
+
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
-	BlocksGameThread.join();
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {

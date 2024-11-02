@@ -52,19 +52,21 @@ void Renderer::loadMesh()
 void Renderer::loadTextures()
 {
 
-
+	// vector of paths
 	std::vector<std::string> pathList;
-
+	
+	// loop through all files in a certain path and add them to a vector
 	for (const auto& file : std::filesystem::directory_iterator("Resources/Textures/Block/PieceBlocks/")) {
 		pathList.push_back(file.path().string().c_str());
 	}
 
+	// create a texture for every file in the folder and add them to a vector of ID's
 	for (const auto& file : pathList) {
-
 		unsigned int texture = textureManager.loadTexture(file.c_str());
 		textureIDs.push_back(texture);
 	}
 
+	// specific texture loading for background and marker
 	backgroundBlockTexture = textureManager.loadTexture("Resources/Textures/Block/blackBlock.png");
 	markerBlockTexture = textureManager.loadTexture("Resources/Textures/Block/markerBlock.png");
 
@@ -213,21 +215,23 @@ void Renderer::draw()
 				unsigned int projLoc = glGetUniformLocation(shaderProgram, "proj");
 				glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
+			// if the block is not empty
 			if (letter != '*') {
 				glActiveTexture(GL_TEXTURE0);
-				// transform a char that we ASSUME is a valid digit
+
+				// if the block is a marker block
 				if (letter == 'x') {
 					glBindTexture(GL_TEXTURE_2D, markerBlockTexture); 
 				}
-				else {
-
+				else { // if it is a normal block
+					// transform a char that we ASSUME is a valid digit
 					int digit = letter - '0'; 
 					glBindTexture(GL_TEXTURE_2D, textureIDs[digit]); // bind relevant texture with this digit
 				}
 
 				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 			}
-			else {
+			else { // draw an empty background block
 				
 				glActiveTexture(GL_TEXTURE0);
 				// transform a char that we ASSUME is a valid digit

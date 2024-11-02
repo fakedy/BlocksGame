@@ -6,6 +6,7 @@ class Shape {
 
 public:
 
+	std::vector<char> shape;
 	int width{};
 	int height{};
 	int posX{};
@@ -14,7 +15,6 @@ public:
 	void transpose();
 	void reverse();
 	void rotate();
-	std::vector<char> shape;
 
 
 

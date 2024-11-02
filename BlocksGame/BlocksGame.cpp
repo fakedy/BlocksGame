@@ -4,7 +4,6 @@
 #include <ctime>
 #include <thread>
 #include <vector>
-
 #include "Input.h"
 #include <random>
 #include <functional>
@@ -21,11 +20,12 @@ constexpr std::vector<char> BlocksGame::fillMap() {
 	std::vector<char> array;
 	array.resize(height * width);
 
-	for (int y = 0; y < BlocksGame::height; y++) {
+	for (int y = 0; y < height; y++) {
 
-		for (int x = 0; x < BlocksGame::width; x++)
+		for (int x = 0; x < width; x++)
 		{
-			array[x + y * BlocksGame::width] = '*';
+			int index = x + y * width;
+			array[index] = '*';
 		}
 
 	}
@@ -50,7 +50,7 @@ BlocksGame::BlocksGame() {
 
 void BlocksGame::tick() {
 
-	while (true) {
+	while (!gameShouldStop) {
 
 		// if we have no piece, create it.
 		if (piece == nullptr) {
@@ -62,7 +62,7 @@ void BlocksGame::tick() {
 
 		char buffer[26];  // Buffer to hold the formatted time string
 		ctime_s(buffer, sizeof(buffer), &currentTime);
-		std::cout << "BlocksGame Clock: " << buffer;
+		std::cout << "Score: " << score << std::endl;
 
 		// if manage to move down
 		if (!move(*piece, 0, 1)) {
@@ -71,7 +71,7 @@ void BlocksGame::tick() {
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
-
+	
 
 }
 
@@ -137,10 +137,12 @@ int BlocksGame::rowClear(Shape& map) {
 	// inefficient
 	// insert new rows from start of vector
 	
-	for (size_t i = 0; i < locations.size(); i++)
+	for (int i = 0; i < locations.size(); i++)
 	{
 		map.shape.insert(map.shape.begin(), map.width ,'*');
 	}
+
+	score += locations.size();
 	
 	mutex.unlock();
 
@@ -152,7 +154,7 @@ void BlocksGame::update() {
 
 	// main thread
 
-		// if we have no piece, create it.
+	// if we have no piece, create it.
 	if (piece == nullptr) {
 		piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 	}
@@ -173,8 +175,9 @@ void BlocksGame::update() {
 		{
 			for (int y = 0; y < expectedPiecePos.get()->height; y++)
 			{
-				if (expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] != '*') {
-					expectedPiecePos.get()->shape[x + y * expectedPiecePos.get()->width] = 'x';
+				int index = x + y * expectedPiecePos.get()->width;
+				if (expectedPiecePos.get()->shape[index] != '*') {
+					expectedPiecePos.get()->shape[index] = 'x';
 				}
 			}
 		}
@@ -201,7 +204,12 @@ void BlocksGame::update() {
 
 	if (Input::getKeyPressed(Input::Key::W)) {
 		//TODO  we need check for rotation to prevent invalid moves
+
+		// low effort fix
 		piece->rotate();
+		if (!canMove(mapShape, *piece)) {
+			piece->rotate();
+		}
 		hasmoved = true;
 	}
 
@@ -298,4 +306,8 @@ Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
 	}
 	mutex.unlock();
 	return stitchedShape;
+}
+
+void BlocksGame::stop() {
+	gameShouldStop = true;
 }
