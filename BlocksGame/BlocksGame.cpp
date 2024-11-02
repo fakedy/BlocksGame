@@ -1,12 +1,10 @@
 #include "BlocksGame.h"
 #include <iostream>
 #include <chrono>
-#include <ctime>
 #include <thread>
 #include <vector>
 #include "Input.h"
 #include <random>
-#include <functional>
 
 
 
@@ -18,6 +16,7 @@ std::uniform_int_distribution<int> dist(1, 100); // defines our distribution
 constexpr std::vector<char> BlocksGame::fillMap() {
 	
 	std::vector<char> array;
+	array.reserve(height * width);
 	array.resize(height * width);
 
 	for (int y = 0; y < height; y++) {
@@ -57,13 +56,6 @@ void BlocksGame::tick() {
 			piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 		}
 
-		auto now = std::chrono::system_clock::now();
-		std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
-
-		char buffer[26];  // Buffer to hold the formatted time string
-		ctime_s(buffer, sizeof(buffer), &currentTime);
-		std::cout << "Score: " << score << std::endl;
-
 		// if manage to move down
 		if (!move(*piece, 0, 1)) {
 			blockHitBottom();
@@ -72,13 +64,9 @@ void BlocksGame::tick() {
 		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
 	
-
 }
 
 void BlocksGame::blockHitBottom() {
-	// collision
-	std::cout << "COLLISION" << std::endl;
-
 	mapShape = stitch(mapShape, *piece);
 	wholeMapShape = stitch(mapShape, *piece);
 	rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)

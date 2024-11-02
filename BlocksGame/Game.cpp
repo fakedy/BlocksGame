@@ -39,10 +39,6 @@ Game::Game()
 		glfwTerminate();
 		return;
 	}
-	GLenum err = glGetError();
-	if (err != GL_NO_ERROR) {
-		std::cerr << "OpenGL error after call: " << err << std::endl;
-	}
 
 	glfwSetKeyCallback(window, Input::keyCallback);
 	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
