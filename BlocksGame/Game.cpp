@@ -9,6 +9,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 int Game::windowWidth{ 1920 };
 int Game::windowHeight{ 1080 };
 
+
 Game::Game()
 {
 	if (!glfwInit()) {

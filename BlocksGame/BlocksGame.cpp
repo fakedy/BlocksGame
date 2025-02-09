@@ -58,10 +58,8 @@ void BlocksGame::tick() {
 	if (tickElapsed > 1000) {
 		lastUpdate = now;
 		if (!m_paused) {
-			// if we have no piece, create it.
-
 			// if manage to move down
-			if (!move(*piece, 0, 1)) {
+			if (!move(*piece, 0, 1) && piece != nullptr) {
 				blockHitBottom();
 			}
 		}
@@ -274,7 +272,7 @@ bool BlocksGame::canMove(const Shape& map, const Shape piece) {
 }
 
 bool BlocksGame::move(Shape& shape, int x, int y) {
-	// uh this felt kinda weird to do
+	// Polymorphic Copying
 	Shape tempPiece = shape;
 	tempPiece.posX += x;
 	tempPiece.posY += y;
