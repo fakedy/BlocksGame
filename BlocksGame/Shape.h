@@ -16,7 +16,10 @@ public:
 	void reverse();
 	void rotate();
 
+	Shape(int width, int height, int posX, int posY, std::vector<char> shape) : width(width), height(height), posX(posX), posY(posY) {
+		shape;
+	}
 
-
+	Shape() = default;
 
 };

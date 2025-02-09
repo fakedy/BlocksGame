@@ -35,8 +35,8 @@ public:
 private:
 	bool usedHeld{false};
 	bool gameShouldStop{false};
-	bool hasmoved;
-	Shape mapShape;
+	bool hasmoved{ false };
+	Shape mapShape{};
 	std::unique_ptr<Shape> piece;
 	std::unique_ptr<Shape> heldPiece;
 	bool m_paused{false};

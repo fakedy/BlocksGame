@@ -6,7 +6,6 @@ class Ishape : public Shape {
 public:
 	Ishape() {
 
-
 		width = 4;
 		height = 1;
 		posX = 4;
