@@ -1,7 +1,8 @@
 #pragma once
 #include <glad/glad.h>
 #include<GLFW/glfw3.h>
-
+#include "Renderer.h"
+#include <memory>
 
 class Game
 {
@@ -15,8 +16,9 @@ private:
 	void update();
 
 
-
-	GLFWwindow* window{};
+	std::unique_ptr<BlocksGame> game;
+	GLFWwindow* window;
+	std::unique_ptr<Renderer> renderer;
 
 };
 

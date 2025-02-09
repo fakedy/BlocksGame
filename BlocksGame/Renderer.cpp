@@ -194,7 +194,6 @@ void Renderer::draw()
 	glm::mat4 proj = glm::ortho(left, right, bottom, top);
 
 
-	mutex.lock(); // to prevent possible race condition but I dont believe its essential.
 	for (int x = 0; x < BlocksGame::wholeMapShape.width; x++)
 	{
 		for (int y = 0; y < BlocksGame::wholeMapShape.height; y++)
@@ -243,6 +242,5 @@ void Renderer::draw()
 
 		}
 	}
-	mutex.unlock();
 
 }

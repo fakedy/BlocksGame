@@ -1,13 +1,11 @@
 #include "Game.h"
 #include <iostream>
 #include "BlocksGame.h"
-#include <thread>
 #include "Input.h"
-#include "Renderer.h"
+
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-BlocksGame game;
 int Game::windowWidth{ 1920 };
 int Game::windowHeight{ 1080 };
 
@@ -43,10 +41,9 @@ Game::Game()
 	glfwSetKeyCallback(window, Input::keyCallback);
 	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 
-	Renderer renderer = Renderer();
+	renderer = std::make_unique<Renderer>();
 
-	game = BlocksGame();
-	std::thread BlocksGameThread(&BlocksGame::tick, &game);
+	game = std::make_unique<BlocksGame>();
 
 
 	glViewport(0, 0, windowWidth, windowHeight);
@@ -56,15 +53,13 @@ Game::Game()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderer.draw();
+		renderer->draw();
 		
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-
-	game.stop();
-	BlocksGameThread.join();
+	game->stop();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -80,7 +75,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void Game::update()
 {
-	game.update();
+	game->tick();
+	game->update();
 
 }
 

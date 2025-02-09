@@ -1,6 +1,5 @@
 #include "BlocksGame.h"
 #include <iostream>
-#include <chrono>
 #include <thread>
 #include <vector>
 #include "Input.h"
@@ -45,26 +44,29 @@ BlocksGame::BlocksGame() {
 
 	// randomly select first piece
 	piece = shapeCreators[dist(gen) % shapeCreators.size()]();
+	wholeMapShape = stitch(mapShape, *piece);
 }
 
 void BlocksGame::tick() {
 
-	while (!gameShouldStop) {
+
+
+	static auto lastUpdate = std::chrono::steady_clock::now();
+	auto now = std::chrono::steady_clock::now();
+	auto tickElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastUpdate).count();
+
+	if (tickElapsed > 1000) {
+		lastUpdate = now;
 		if (!m_paused) {
 			// if we have no piece, create it.
-			if (piece == nullptr) {
-				piece = shapeCreators[dist(gen) % shapeCreators.size()]();
-			}
 
 			// if manage to move down
 			if (!move(*piece, 0, 1)) {
 				blockHitBottom();
 			}
 		}
-
-		std::this_thread::sleep_for(std::chrono::seconds(1));
 	}
-	
+
 }
 
 void BlocksGame::blockHitBottom() {
@@ -74,6 +76,7 @@ void BlocksGame::blockHitBottom() {
 	mapShape = wholeMapShape; // after clearing full rows transfer state to mapShape
 	piece = nullptr;
 	usedHeld = false;
+	tickElapsed = std::chrono::milliseconds(0);
 }
 
 int BlocksGame::rowClear(Shape& map) {
@@ -107,8 +110,7 @@ int BlocksGame::rowClear(Shape& map) {
 
 		}
 	}
-	// I dont think locking is actually necessary but whatever
-	mutex.lock();
+
 	// for every row marked to be removed, remove them and add new row
 
 	// sort rows in descending order to ensure integrity of rows in shape
@@ -133,7 +135,6 @@ int BlocksGame::rowClear(Shape& map) {
 
 	score += locations.size();
 	
-	mutex.unlock();
 
 	return counter;
 
@@ -142,9 +143,9 @@ int BlocksGame::rowClear(Shape& map) {
 void BlocksGame::update() {
 
 	// main thread
-		if (Input::getKeyPressed(Input::Key::ESCAPE)) {
-			m_paused = !m_paused;
-		}
+	if (Input::getKeyPressed(Input::Key::ESCAPE)) {
+		m_paused = !m_paused;
+	}
 	
 	if (m_paused) {
 		return;
@@ -153,6 +154,7 @@ void BlocksGame::update() {
 	// if we have no piece, create it.
 	if (piece == nullptr) {
 		piece = shapeCreators[dist(gen) % shapeCreators.size()]();
+		wholeMapShape = stitch(mapShape, *piece);
 	}
 
 
@@ -223,7 +225,6 @@ void BlocksGame::update() {
 
 			if (heldPiece == nullptr) {
 				heldPiece = std::move(piece);
-				piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 			}
 			else {
 				std::unique_ptr<Shape> temp = std::move(piece);
@@ -234,6 +235,7 @@ void BlocksGame::update() {
 				piece.get()->posX = 4;
 			}
 			usedHeld = true;
+			tickElapsed = std::chrono::milliseconds(0);
 		}
 
 		hasmoved = true;
@@ -287,7 +289,6 @@ bool BlocksGame::move(Shape& shape, int x, int y) {
 }
 
 Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
-	mutex.lock();
 	Shape stitchedShape = shape1; // Start with the base map
 	for (int y = 0; y < piece.height; y++) {
 		for (int x = 0; x < piece.width; x++) {
@@ -301,7 +302,6 @@ Shape BlocksGame::stitch(const Shape& shape1, const Shape& piece) {
 			}
 		}
 	}
-	mutex.unlock();
 	return stitchedShape;
 }
 

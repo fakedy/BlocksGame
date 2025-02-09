@@ -2,11 +2,9 @@
 #include <array>
 #include <span>
 #include <vector>
-#include "Tshape.h"
-#include "Ishape.h"
-#include <mutex>
 #include <memory>
 #include <functional>
+#include <chrono>
 #include "Tshape.h"
 #include "Ishape.h"
 #include "Lshape.h"
@@ -15,7 +13,7 @@
 #include "SRshape.h"
 #include "Oshape.h"
 
-static std::mutex mutex;
+
 
 class BlocksGame
 {
@@ -33,6 +31,8 @@ public:
 	void stop();
 
 private:
+
+	std::chrono::milliseconds tickElapsed;
 	bool usedHeld{false};
 	bool gameShouldStop{false};
 	bool hasmoved{ false };
