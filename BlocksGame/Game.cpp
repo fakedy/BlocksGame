@@ -8,8 +8,8 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 BlocksGame game;
-int Game::windowWidth = 1920;
-int Game::windowHeight = 1080;
+int Game::windowWidth{ 1920 };
+int Game::windowHeight{ 1080 };
 
 Game::Game()
 {

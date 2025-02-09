@@ -14,13 +14,13 @@ public:
 private:
 
 	TextureManager textureManager;
-	unsigned int VBO;
-	unsigned int VAO;
-	unsigned int EBO;
-	unsigned int shaderProgram;
+	unsigned int VBO{};
+	unsigned int VAO{};
+	unsigned int EBO{};
+	unsigned int shaderProgram{};
 
-	unsigned int backgroundBlockTexture;
-	unsigned int markerBlockTexture;
+	unsigned int backgroundBlockTexture{};
+	unsigned int markerBlockTexture{};
 	std::vector<GLuint> textureIDs;
 
 	float vertices[16] = {

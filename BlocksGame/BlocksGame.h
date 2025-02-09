@@ -22,9 +22,9 @@ class BlocksGame
 
 public:
 
-	static const int width = 10;
-	static const int height = 20;
-	int score = 0;
+	static const int width{ 10 };
+	static const int height{ 20 };
+	int score{ 0 };
 	static Shape wholeMapShape; // static :8
 	BlocksGame();
 
@@ -34,12 +34,12 @@ public:
 
 private:
 	bool usedHeld{false};
-	bool gameShouldStop = false;
+	bool gameShouldStop{false};
 	bool hasmoved;
 	Shape mapShape;
 	std::unique_ptr<Shape> piece;
 	std::unique_ptr<Shape> heldPiece;
-
+	bool m_paused{false};
 	
 	constexpr std::vector<char> fillMap();
 	int rowClear(Shape& map);

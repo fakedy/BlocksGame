@@ -50,15 +50,16 @@ BlocksGame::BlocksGame() {
 void BlocksGame::tick() {
 
 	while (!gameShouldStop) {
+		if (!m_paused) {
+			// if we have no piece, create it.
+			if (piece == nullptr) {
+				piece = shapeCreators[dist(gen) % shapeCreators.size()]();
+			}
 
-		// if we have no piece, create it.
-		if (piece == nullptr) {
-			piece = shapeCreators[dist(gen) % shapeCreators.size()]();
-		}
-
-		// if manage to move down
-		if (!move(*piece, 0, 1)) {
-			blockHitBottom();
+			// if manage to move down
+			if (!move(*piece, 0, 1)) {
+				blockHitBottom();
+			}
 		}
 
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -141,6 +142,13 @@ int BlocksGame::rowClear(Shape& map) {
 void BlocksGame::update() {
 
 	// main thread
+		if (Input::getKeyPressed(Input::Key::ESCAPE)) {
+			m_paused = !m_paused;
+		}
+	
+	if (m_paused) {
+		return;
+	}
 
 	// if we have no piece, create it.
 	if (piece == nullptr) {
@@ -150,6 +158,8 @@ void BlocksGame::update() {
 
 	// detect input and move piece
 	if (hasmoved) {
+
+
 
 		// stitch piece onto the map
 		wholeMapShape = stitch(mapShape, *piece);
@@ -191,7 +201,6 @@ void BlocksGame::update() {
 	}
 
 	if (Input::getKeyPressed(Input::Key::W)) {
-		//TODO  we need check for rotation to prevent invalid moves
 
 		// low effort fix
 		piece->rotate();

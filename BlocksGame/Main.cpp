@@ -7,6 +7,5 @@
 int main() {
 
 	Game game = Game();
-	
 	return 0;
 }
