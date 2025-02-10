@@ -161,6 +161,7 @@
     <ClInclude Include="Ishape.h" />
     <ClInclude Include="LRshape.h" />
     <ClInclude Include="Lshape.h" />
+    <ClInclude Include="miniaudio.h" />
     <ClInclude Include="Oshape.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Shape.h" />

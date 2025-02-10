@@ -6,7 +6,6 @@
 #include <random>
 
 
-
 Shape BlocksGame::wholeMapShape;
 std::random_device rd; // random seed
 std::mt19937 gen(rd()); // init generator with random seed
@@ -31,7 +30,7 @@ constexpr std::vector<char> BlocksGame::fillMap() {
 	return array;
 }
 
-BlocksGame::BlocksGame() {
+BlocksGame::BlocksGame(ma_engine &soundEngine) : soundEngine(soundEngine){
 	// create the base shape 
 	mapShape.shape = fillMap();
 	mapShape.width = width;
@@ -45,6 +44,7 @@ BlocksGame::BlocksGame() {
 	// randomly select first piece
 	piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 	wholeMapShape = stitch(mapShape, *piece);
+	ma_engine_play_sound(&soundEngine, "Resources/Sounds/outlands.wav", 0);
 }
 
 void BlocksGame::tick() {
@@ -70,7 +70,14 @@ void BlocksGame::tick() {
 void BlocksGame::blockHitBottom() {
 	mapShape = stitch(mapShape, *piece);
 	wholeMapShape = stitch(mapShape, *piece);
-	rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
+	int score = rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
+	if (score == 0) {
+		// play sound
+		ma_engine_play_sound(&soundEngine, "Resources/Sounds/click.wav", 0);
+	}
+	else {
+		ma_engine_play_sound(&soundEngine, "Resources/Sounds/490611.wav", 0);
+	}
 	mapShape = wholeMapShape; // after clearing full rows transfer state to mapShape
 	piece = nullptr;
 	usedHeld = false;

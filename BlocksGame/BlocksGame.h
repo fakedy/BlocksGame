@@ -12,6 +12,8 @@
 #include "Sshape.h"
 #include "SRshape.h"
 #include "Oshape.h"
+#include "miniaudio.h"
+
 
 
 
@@ -24,13 +26,15 @@ public:
 	static const int height{ 20 };
 	int score{ 0 };
 	static Shape wholeMapShape; // static :8
-	BlocksGame();
+	BlocksGame(ma_engine &soundEngine);
 
 	void tick();
 	void update();
 	void stop();
 
 private:
+
+	ma_engine& soundEngine;
 
 	std::chrono::milliseconds tickElapsed;
 	bool usedHeld{false};

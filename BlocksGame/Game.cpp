@@ -2,7 +2,8 @@
 #include <iostream>
 #include "BlocksGame.h"
 #include "Input.h"
-
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -42,9 +43,24 @@ Game::Game()
 	glfwSetKeyCallback(window, Input::keyCallback);
 	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 
+
+	// sound stuff
+
+	
+	ma_result result;
+	ma_engine soundEngine;
+
+	result = ma_engine_init(NULL, &soundEngine);
+	if (result != MA_SUCCESS) {
+		printf("Failed to initialize audio engine.\n");
+		return;
+	}
+	
+
+
 	renderer = std::make_unique<Renderer>();
 
-	game = std::make_unique<BlocksGame>();
+	game = std::make_unique<BlocksGame>(soundEngine);
 
 
 	glViewport(0, 0, windowWidth, windowHeight);
