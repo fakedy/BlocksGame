@@ -44,7 +44,13 @@ BlocksGame::BlocksGame(ma_engine &soundEngine) : soundEngine(soundEngine){
 	// randomly select first piece
 	piece = shapeCreators[dist(gen) % shapeCreators.size()]();
 	wholeMapShape = stitch(mapShape, *piece);
-	ma_engine_play_sound(&soundEngine, "Resources/Sounds/outlands.wav", 0);
+
+	ma_engine_set_volume(&soundEngine, 1.0f);
+	std::cout << "Channels: " << ma_engine_get_channels(&soundEngine) << "\n";
+
+	//ma_engine_play_sound(&soundEngine, "Resources/Sounds/outlands.wav", 0);
+
+	std::cout << "volume: " << ma_engine_get_volume(&soundEngine) << "\n";
 }
 
 void BlocksGame::tick() {
@@ -70,8 +76,8 @@ void BlocksGame::tick() {
 void BlocksGame::blockHitBottom() {
 	mapShape = stitch(mapShape, *piece);
 	wholeMapShape = stitch(mapShape, *piece);
-	int score = rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
-	if (score == 0) {
+	int tempScore = rowClear(wholeMapShape); // check if we have a full row. gives an int as return (score)
+	if (tempScore == 0) {
 		// play sound
 		ma_engine_play_sound(&soundEngine, "Resources/Sounds/click.wav", 0);
 	}
@@ -138,10 +144,11 @@ int BlocksGame::rowClear(Shape& map) {
 		map.shape.insert(map.shape.begin(), map.width ,'*');
 	}
 
-	score += locations.size();
+	int returnScore = locations.size();
+	score += returnScore;
 	
 
-	return counter;
+	return returnScore;
 
 }
 
@@ -280,6 +287,9 @@ bool BlocksGame::canMove(const Shape& map, const Shape piece) {
 
 bool BlocksGame::move(Shape& shape, int x, int y) {
 	// Polymorphic Copying
+	if (piece == nullptr) {
+		return false;
+	}
 	Shape tempPiece = shape;
 	tempPiece.posX += x;
 	tempPiece.posY += y;

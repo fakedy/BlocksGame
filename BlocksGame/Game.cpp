@@ -78,6 +78,7 @@ Game::Game()
 
 	game->stop();
 
+	ma_engine_uninit(&soundEngine);
 	glfwDestroyWindow(window);
 	glfwTerminate();
 }
