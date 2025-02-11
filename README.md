@@ -14,3 +14,4 @@
 * stb_image
 * GLAD
 * GLM
+* miniaudio
